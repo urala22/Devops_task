@@ -1,0 +1,54 @@
+version: "3.9"
+
+services:
+  mongo:
+    image: mongo:7
+    container_name: mongo
+    restart: always
+    volumes:
+      - mongo-data:/data/db
+    networks:
+      - mean-net
+
+  backend:
+    image: urala22/mean-backend:latest
+    container_name: backend
+    restart: always
+    environment:
+      - MONGO_URI=mongodb://mongo:27017/mean_db
+      - PORT=3000
+    depends_on:
+      - mongo
+    networks:
+      - mean-net
+
+  frontend:
+    image: urala22/mean-frontend:latest
+    container_name: frontend
+    restart: always
+    depends_on:
+      - backend
+    networks:
+      - mean-net
+
+  nginx:
+    image: nginx:alpine
+    container_name: nginx-reverse-proxy
+    restart: always
+    volumes:
+      - ./nginx:/etc/nginx/conf.d:ro
+    ports:
+      - "8080:80"
+    depends_on:
+      - frontend
+      - backend
+    networks:
+      - mean-net
+
+
+
+networks:
+  mean-net:
+
+volumes:
+  mongo-data:
